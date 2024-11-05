@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Debug)]
@@ -32,13 +34,37 @@ impl Deck {
     }
 }
 
+impl Display for Deck {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "\n====================\n")?;
+        for card in &self.cards {
+            write!(f, "{}\n", card)?;
+        }
+        write!(f, "====================")
+    }
+}
+
 #[derive(Debug)]
 struct Card {
     suit: Suits,
     number: CardNumber,
 }
 
-#[derive(Debug, Clone, Copy)]
+impl Display for Card {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.number == CardNumber::Joker {
+            if self.suit == Suits::Clubs || self.suit == Suits::Spades {
+                write!(f, "Black {}", self.number)
+            } else {
+                write!(f, "Red {}", self.number)
+            }
+        } else {
+            write!(f, "{} of {}", self.number, self.suit)
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Suits {
     Spades,
     Hearts,
@@ -46,7 +72,25 @@ enum Suits {
     Diamonds,
 }
 
-#[derive(Debug)]
+impl Into<String> for Suits {
+    fn into(self) -> String {
+        match self {
+            Suits::Clubs => "Clubs".to_string(),
+            Suits::Diamonds => "Diamonds".to_string(),
+            Suits::Hearts => "Hearts".to_string(),
+            Suits::Spades => "Spades".to_string(),
+        }
+    }
+}
+
+impl Display for Suits {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s_string: String = (*self).into();
+        write!(f, "{}", s_string)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum CardNumber {
     Ace,
     Two,
@@ -85,9 +129,38 @@ impl From<usize> for CardNumber {
     }
 }
 
+impl Into<String> for CardNumber {
+    fn into(self) -> String {
+        match self {
+            CardNumber::Ace => "Ace".to_string(),
+            CardNumber::Two => "Two".to_string(),
+            CardNumber::Three => "Three".to_string(),
+            CardNumber::Four => "Four".to_string(),
+            CardNumber::Five => "Five".to_string(),
+            CardNumber::Six => "Six".to_string(),
+            CardNumber::Seven => "Seven".to_string(),
+            CardNumber::Eight => "Eight".to_string(),
+            CardNumber::Nine => "Nine".to_string(),
+            CardNumber::Ten => "Ten".to_string(),
+            CardNumber::Jack => "Jack".to_string(),
+            CardNumber::Queen => "Queen".to_string(),
+            CardNumber::King => "King".to_string(),
+            CardNumber::Joker => "Joker".to_string(),
+        }
+    }
+}
+
+impl Display for CardNumber {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let cn_string: String = (*self).into();
+        write!(f, "{}", cn_string)
+    }
+}
+
 fn main() {
     let mut deck = Deck::new();
-    println!("Here's your deck: {:#?}", deck);
+    println!("OK");
+    println!("Here's your deck: {}", deck);
 
     println!("Shuffling ... ");
     deck.shuffle();
@@ -95,5 +168,8 @@ fn main() {
     println!("Dealing ... ");
     let hand = deck.deal(2);
 
-    println!("Here's your hand: {:#?}", hand)
+    println!("Here's your hand:");
+    for card in hand {
+        println!("\t{}", card);
+    }
 }
