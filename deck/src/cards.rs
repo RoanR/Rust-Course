@@ -1,4 +1,3 @@
-
 use std::fmt::Display;
 
 use rand::{seq::SliceRandom, thread_rng};
@@ -45,10 +44,16 @@ impl Display for Deck {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Card {
     suit: Suits,
     number: CardNumber,
+}
+
+impl Card {
+    pub fn value(&self) -> usize {
+        usize::from(self.number)
+    }
 }
 
 impl Display for Card {
@@ -126,6 +131,27 @@ impl From<usize> for CardNumber {
             12 => CardNumber::Queen,
             13 => CardNumber::King,
             _ => CardNumber::Joker,
+        }
+    }
+}
+
+impl From<CardNumber> for usize {
+    fn from(value: CardNumber) -> Self {
+        match value {
+            CardNumber::Ace => 1,
+            CardNumber::Two => 2,
+            CardNumber::Three => 3,
+            CardNumber::Four => 4,
+            CardNumber::Five => 5,
+            CardNumber::Six => 6,
+            CardNumber::Seven => 7,
+            CardNumber::Eight => 8,
+            CardNumber::Nine => 9,
+            CardNumber::Ten => 10,
+            CardNumber::Jack => 11,
+            CardNumber::Queen => 12,
+            CardNumber::King => 13,
+            CardNumber::Joker => 0,
         }
     }
 }
