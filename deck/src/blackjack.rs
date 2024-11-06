@@ -1,3 +1,5 @@
+use std::io;
+
 use crate::cards::{Card, Deck};
 
 pub struct Game {
@@ -25,6 +27,32 @@ impl Game {
             human,
             computer,
             turn: true,
+        }
+    }
+
+    pub fn turn(&mut self) {
+        let mut stuck = false;
+        while !stuck && !self.human.bust() {
+            let mut buffer = String::new();
+            while !buffer.to_lowercase().contains("twist")
+                && !buffer.to_lowercase().contains("stick")
+            {
+                buffer = String::new();
+                println!("Stick or Twist?");
+                io::stdin().read_line(&mut buffer);
+            }
+
+            if buffer.to_lowercase().contains("twist") {
+                self.deck.hit(&mut self.human);
+                // FIX
+                println!("\tYou got a {}", self.human.hand.last().unwrap())
+            }
+            if buffer.to_lowercase().contains("stick") {
+                stuck = true
+            }
+        }
+        if self.human.bust() {
+            println!("You're Bust.\nGAMEOVER")
         }
     }
 }

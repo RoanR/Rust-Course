@@ -4,5 +4,6 @@ mod blackjack;
 mod cards;
 
 fn main() {
-    let game = Game::new();
+    let mut game = Game::new();
+    game.turn();
 }
