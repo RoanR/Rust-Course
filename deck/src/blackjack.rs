@@ -1,4 +1,4 @@
-use crate::cards::Card;
+use crate::cards::{Card, Deck};
 
 pub struct Player {
     hand: Vec<Card>,
@@ -7,6 +7,10 @@ pub struct Player {
 impl Player {
     pub fn new(hand: Vec<Card>) -> Self {
         Self { hand }
+    }
+
+    pub fn hand(&self) -> &[Card] {
+        &self.hand
     }
 
     pub fn bust(&self) -> bool {
@@ -18,10 +22,17 @@ impl Player {
                 total += card.value();
             }
         }
-        if total > 21 {
-            true
-        } else {
-            false
-        }
+        total > 21
+    }
+
+    pub fn hit(&mut self, card: Card) {
+        self.hand.push(card);
+    }
+}
+
+impl Deck {
+    pub fn hit(&mut self, player: &mut Player) {
+        Deck::shuffle(self);
+        player.hit(Deck::deal(self, 1)[0]);
     }
 }

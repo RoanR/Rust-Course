@@ -20,6 +20,13 @@ fn main() {
     }
 
     println!("Creating a new Player");
-    let p = Player::new(hand);
-    println!("Are you bust {}", p.bust());
+    let mut p = Player::new(hand);
+    while !p.bust() {
+        deck.hit(&mut p);
+        println!("\nHitting You!");
+        print!("New hand: ");
+        for card in p.hand() {
+            print!("{}, ", card);
+        }
+    }
 }
