@@ -45,16 +45,36 @@ impl Game {
             if buffer.to_lowercase().contains("twist") {
                 self.deck.hit(&mut self.human);
                 // FIX
-                println!("\tYou got a {}", self.human.hand.last().unwrap())
+                println!("\t{}", self.human.hand.last().unwrap())
             }
             if buffer.to_lowercase().contains("stick") {
                 stuck = true
             }
         }
         if self.human.bust() {
-            println!("You're Bust.\nGAMEOVER")
+            println!("You're Bust.")
         }
     }
+
+    pub fn cpu_turn(&mut self) {
+        let mut hand = self.computer.hand();
+        println!("The dealers hand:\n\t{}\n\t{}", hand[0], hand[1]);
+        println!("\t================");
+
+        let mut total = 0;
+        for card in hand {
+            total += card.blackjack_value();
+        }
+
+        while total <= 16 {
+            self.deck.hit(&mut self.computer);
+            // FIX
+            println!("\t{}", self.computer.hand().last().unwrap());
+            total += self.computer.hand().last().unwrap().blackjack_value();
+        }
+    }
+
+    pub fn winner(&self) -> bool {}
 }
 pub struct Player {
     hand: Vec<Card>,
@@ -90,5 +110,15 @@ impl Deck {
     pub fn hit(&mut self, player: &mut Player) {
         Deck::shuffle(self);
         player.hit(Deck::deal(self, 1)[0]);
+    }
+}
+
+impl Card {
+    pub fn blackjack_value(&self) -> usize {
+        if self.value() > 10 {
+            10
+        } else {
+            self.value()
+        }
     }
 }
