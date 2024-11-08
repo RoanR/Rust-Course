@@ -74,7 +74,15 @@ impl Game {
         }
     }
 
-    pub fn winner(&self) -> bool {}
+    pub fn human_win(&self) -> bool {
+        if self.human.bust()
+            || (self.human.score() <= self.computer.score() && !self.computer.bust())
+        {
+            false
+        } else {
+            true
+        }
+    }
 }
 pub struct Player {
     hand: Vec<Card>,
@@ -103,6 +111,26 @@ impl Player {
 
     pub fn hit(&mut self, card: Card) {
         self.hand.push(card);
+    }
+
+    pub fn score(&self) -> usize {
+        let mut ace_count = 0;
+        let mut total = 0;
+        for card in &self.hand {
+            if card.blackjack_value() == 1 {
+                ace_count += 1;
+            } else {
+                total += card.blackjack_value();
+            }
+        }
+        total += ace_count;
+        while ace_count != 0 {
+            if total + 10 > 21 {
+                total += 10;
+            }
+            ace_count -= 1;
+        }
+        total
     }
 }
 
