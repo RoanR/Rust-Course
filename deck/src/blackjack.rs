@@ -2,6 +2,12 @@ use std::io;
 
 use crate::cards::{Card, Deck};
 
+macro_rules! print_card {
+    ($card:expr) => {
+        format!("{} {}", $card.unicode(), $card)
+    };
+}
+
 pub struct Game {
     deck: Deck,
     human: Player,
@@ -18,10 +24,15 @@ impl Game {
         let computer = Player::new(deck.deal(2));
         let human = Player::new(deck.deal(2));
         println!(
-            "Dealers showing: \n\tFacedown Card\n\t{}",
-            computer.hand()[1]
+            "Dealers showing: \n\t{} HIDDEN\n\t{}",
+            "\u{1F0A0}",
+            print_card!(computer.hand()[1])
         );
-        println!("Your cards: \n\t{}\n\t{}", human.hand()[0], human.hand()[1]);
+        println!(
+            "Your cards: \n\t{}\n\t{}",
+            print_card!(human.hand()[0]),
+            print_card!(human.hand()[1])
+        );
         Self {
             deck,
             human,
@@ -45,7 +56,7 @@ impl Game {
             if buffer.to_lowercase().contains("twist") {
                 self.deck.hit(&mut self.human);
                 // FIX
-                println!("\t{}", self.human.hand.last().unwrap())
+                println!("\t{}", print_card!(self.human.hand.last().unwrap()))
             }
             if buffer.to_lowercase().contains("stick") {
                 stuck = true
@@ -58,8 +69,12 @@ impl Game {
 
     pub fn cpu_turn(&mut self) {
         let mut hand = self.computer.hand();
-        println!("The dealers hand:\n\t{}\n\t{}", hand[0], hand[1]);
-        println!("\t================");
+        println!(
+            "The dealers hand:\n\t{}\n\t{}",
+            print_card!(hand[0]),
+            print_card!(hand[1]),
+        );
+        println!("\t==================");
 
         let mut total = 0;
         for card in hand {
@@ -69,7 +84,7 @@ impl Game {
         while total <= 16 {
             self.deck.hit(&mut self.computer);
             // FIX
-            println!("\t{}", self.computer.hand().last().unwrap());
+            println!("\t{}", print_card!(self.computer.hand().last().unwrap()));
             total += self.computer.hand().last().unwrap().blackjack_value();
         }
     }
@@ -84,6 +99,7 @@ impl Game {
         }
     }
 }
+
 pub struct Player {
     hand: Vec<Card>,
 }
@@ -125,7 +141,7 @@ impl Player {
         }
         total += ace_count;
         while ace_count != 0 {
-            if total + 10 > 21 {
+            if total + 10 >= 21 {
                 total += 10;
             }
             ace_count -= 1;

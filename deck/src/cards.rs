@@ -54,6 +54,19 @@ impl Card {
     pub fn value(&self) -> usize {
         usize::from(self.number)
     }
+
+    pub fn unicode(&self) -> String {
+        let mut unicode: u32 = match self.suit {
+            Suits::Spades => 0x1F0A0,
+            Suits::Hearts => 0x1F0B0,
+            Suits::Diamonds => 0x1F0C0,
+            Suits::Clubs => 0x1F0D0,
+        };
+        // FIX
+        let val: u32 = self.value().try_into().unwrap();
+        unicode += val;
+        char::from_u32(unicode).unwrap().to_string()
+    }
 }
 
 impl Display for Card {
