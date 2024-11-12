@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use rand::{seq::SliceRandom, thread_rng};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Deck {
     cards: Vec<Card>,
 }
@@ -44,7 +44,7 @@ impl Display for Deck {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Card {
     suit: Suits,
     number: CardNumber,
@@ -194,5 +194,123 @@ impl Display for CardNumber {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let cn_string: String = (*self).into();
         write!(f, "{}", cn_string)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn card_value() {
+        for x in 0..14 {
+            let c = Card {
+                suit: Suits::Clubs,
+                number: x.into(),
+            };
+            assert_eq!(x, c.value())
+        }
+    }
+
+    #[test]
+    fn card_unicode() {
+        let mut c = Card {
+            suit: Suits::Clubs,
+            number: 0.into(),
+        };
+        assert_eq!(c.unicode(), '\u{1F0D0}'.to_string());
+        c.suit = Suits::Diamonds;
+        assert_eq!(c.unicode(), '\u{1F0C0}'.to_string());
+        c.suit = Suits::Hearts;
+        assert_eq!(c.unicode(), '\u{1F0B0}'.to_string());
+        c.suit = Suits::Spades;
+        assert_eq!(c.unicode(), '\u{1F0A0}'.to_string());
+    }
+
+    #[test]
+    fn card_number_display() {
+        assert_eq!("Ace", format!("{}", Into::<CardNumber>::into(1)));
+        assert_eq!("Two", format!("{}", Into::<CardNumber>::into(2)));
+        assert_eq!("Three", format!("{}", Into::<CardNumber>::into(3)));
+        assert_eq!("Four", format!("{}", Into::<CardNumber>::into(4)));
+        assert_eq!("Five", format!("{}", Into::<CardNumber>::into(5)));
+        assert_eq!("Six", format!("{}", Into::<CardNumber>::into(6)));
+        assert_eq!("Seven", format!("{}", Into::<CardNumber>::into(7)));
+        assert_eq!("Eight", format!("{}", Into::<CardNumber>::into(8)));
+        assert_eq!("Nine", format!("{}", Into::<CardNumber>::into(9)));
+        assert_eq!("Ten", format!("{}", Into::<CardNumber>::into(10)));
+        assert_eq!("Jack", format!("{}", Into::<CardNumber>::into(11)));
+        assert_eq!("Queen", format!("{}", Into::<CardNumber>::into(12)));
+        assert_eq!("King", format!("{}", Into::<CardNumber>::into(13)));
+        assert_eq!("Joker", format!("{}", Into::<CardNumber>::into(0)));
+    }
+
+    #[test]
+    fn suits_display() {
+        assert_eq!("Clubs", format!("{}", Suits::Clubs));
+        assert_eq!("Diamonds", format!("{}", Suits::Diamonds));
+        assert_eq!("Spades", format!("{}", Suits::Spades));
+        assert_eq!("Hearts", format!("{}", Suits::Hearts));
+    }
+
+    #[test]
+    fn cards_display() {
+        let mut c = Card {
+            suit: Suits::Clubs,
+            number: 0.into(),
+        };
+
+        // Suit Invariance for the Black/Red Jokers
+        assert_eq!("Black Joker", format!("{}", c));
+        c.suit = Suits::Spades;
+        assert_eq!("Black Joker", format!("{}", c));
+        c.suit = Suits::Diamonds;
+        assert_eq!("Red Joker", format!("{}", c));
+        c.suit = Suits::Hearts;
+        assert_eq!("Red Joker", format!("{}", c));
+
+        // Generic Card
+        c.number = 4.into();
+        assert_eq!("Four of Hearts", format!("{}", c));
+    }
+
+    #[test]
+    fn deck_new() {
+        let deck = Deck::new();
+        assert_eq!(deck.cards.len(), 52);
+    }
+
+    #[test]
+    fn deck_shuffle() {
+        let mut deck = Deck::new();
+        let deck_copy = deck.clone();
+        deck.shuffle();
+        assert_ne!(deck_copy, deck);
+    }
+
+    #[test]
+    fn deck_deal() {
+        let mut deck = Deck::new();
+        let hand = deck.deal(3);
+        assert_eq!(hand.len(), 3);
+        let hand = deck.deal(31);
+        assert_eq!(hand.len(), 31);
+    }
+
+    #[test]
+    fn deck_display() {
+        let expected = "\n====================\nSix of Spades\nAce of Spades\n====================";
+        let card_a = Card {
+            suit: Suits::Spades,
+            number: 6.into(),
+        };
+        let card_b = Card {
+            suit: Suits::Spades,
+            number: 1.into(),
+        };
+        let deck = Deck {
+            cards: vec![card_a, card_b],
+        };
+        assert_eq!(expected.to_string(), format!("{}", deck))
     }
 }
