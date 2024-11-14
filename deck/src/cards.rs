@@ -51,6 +51,10 @@ pub struct Card {
 }
 
 impl Card {
+    pub fn new(suit: Suits, number: CardNumber) -> Self {
+        Self { suit, number }
+    }
+
     pub fn value(&self) -> usize {
         usize::from(self.number)
     }
@@ -84,7 +88,7 @@ impl Display for Card {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Suits {
+pub enum Suits {
     Spades,
     Hearts,
     Clubs,
@@ -110,7 +114,7 @@ impl Display for Suits {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum CardNumber {
+pub enum CardNumber {
     Ace,
     Two,
     Three,
@@ -200,6 +204,16 @@ impl Display for CardNumber {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn card_new() {
+        let a = Card::new(Suits::Clubs, 0.into());
+        let b = Card {
+            suit: Suits::Clubs,
+            number: 0.into(),
+        };
+        assert_eq!(a, b);
+    }
 
     #[test]
     fn card_value() {

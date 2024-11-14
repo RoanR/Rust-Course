@@ -141,7 +141,7 @@ impl Player {
         }
         total += ace_count;
         while ace_count != 0 {
-            if total + 10 >= 21 {
+            if total + 10 <= 21 {
                 total += 10;
             }
             ace_count -= 1;
@@ -164,5 +164,86 @@ impl Card {
         } else {
             self.value()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use crate::cards::Suits;
+
+    #[test]
+    fn player_new() {
+        let p = Player::new(vec![]);
+        assert_eq!(p.hand.len(), 0);
+    }
+
+    #[test]
+    fn player_hand() {
+        let p = Player::new(vec![Card::new(Suits::Clubs, 1.into())]);
+        assert_eq!(p.hand, p.hand());
+    }
+
+    #[test]
+    fn player_bust() {
+        let mut p = Player::new(vec![
+            Card::new(Suits::Clubs, 10.into()),
+            Card::new(Suits::Clubs, 11.into()),
+        ]);
+        assert!(!p.bust());
+        p.hand.push(Card::new(Suits::Clubs, 12.into()));
+        assert!(p.bust());
+    }
+
+    #[test]
+    fn player_hit() {
+        let mut p = Player::new(vec![]);
+        p.hit(Card::new(Suits::Clubs, 1.into()));
+        assert_eq!(p.hand(), vec![Card::new(Suits::Clubs, 1.into())]);
+    }
+
+    #[test]
+    fn player_score() {
+        let mut p = Player::new(vec![Card::new(Suits::Clubs, 5.into())]);
+        assert_eq!(p.score(), 5);
+        p.hand.push(Card::new(Suits::Diamonds, 5.into()));
+        assert_eq!(p.score(), 10);
+        p.hand.push(Card::new(Suits::Diamonds, 0.into()));
+        assert_eq!(p.score(), 10);
+        p.hand.push(Card::new(Suits::Clubs, 1.into()));
+        assert_eq!(p.score(), 21);
+        p.hand.push(Card::new(Suits::Diamonds, 1.into()));
+        assert_eq!(p.score(), 12);
+    }
+
+    #[test]
+    fn deck_hit() {
+        let mut deck = Deck::new();
+        let mut player = Player::new(vec![]);
+
+        assert_eq!(player.hand.len(), 0);
+        deck.hit(&mut player);
+        assert_eq!(player.hand.len(), 1);
+    }
+
+    #[test]
+    fn card_blackjack_value() {
+        let mut deck = Deck::new();
+        for c in deck.deal(52) {
+            if c.value() >= 10 {
+                assert_eq!(c.blackjack_value(), 10)
+            } else {
+                assert_eq!(c.value(), c.blackjack_value());
+            }
+        }
+    }
+
+    #[test]
+    fn game_new() {
+        let game = Game::new();
+        assert!(game.turn);
+        assert_eq!(game.human.hand.len(), 2);
+        assert_eq!(game.computer.hand.len(), 2);
     }
 }
