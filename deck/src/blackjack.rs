@@ -1,6 +1,7 @@
-use std::io;
+use std::{cmp::max, fmt::Display, io, usize};
 
 use crate::cards::{Card, Deck};
+use crate::terminal::Terminal;
 
 macro_rules! print_card {
     ($card:expr) => {
@@ -17,22 +18,10 @@ pub struct Game {
 
 impl Game {
     pub fn new() -> Self {
-        println!("Starting new game of BlackJack");
         let mut deck = Deck::new();
-        println!("Shuffling and Dealing ..... ");
         deck.shuffle();
         let computer = Player::new(deck.deal(2));
         let human = Player::new(deck.deal(2));
-        println!(
-            "Dealers showing: \n\t{} HIDDEN\n\t{}",
-            "\u{1F0A0}",
-            print_card!(computer.hand()[1])
-        );
-        println!(
-            "Your cards: \n\t{}\n\t{}",
-            print_card!(human.hand()[0]),
-            print_card!(human.hand()[1])
-        );
         Self {
             deck,
             human,
@@ -100,6 +89,31 @@ impl Game {
     }
 }
 
+impl Display for Game {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut t = Terminal::new();
+
+        // Title
+        t.divider(f)?;
+        t.centre_text(f, "Blackjack".to_string())?;
+        t.divider(f)?;
+
+        // Display Players
+        // If first turn - Hide the dealers cards
+        let mut text = vec![];
+        if self.turn {
+            text.push(format!(
+                "The Dealer:\n\u{1F0A0} Hidden Card\n{}",
+                print_card!(self.computer.hand[1])
+            ));
+        } else {
+            text.push(format!("The Dealer:\n{}", self.computer));
+        }
+        text.push(format!("The Player:\n{}", self.human));
+        t.column_text(f, text)
+    }
+}
+
 pub struct Player {
     hand: Vec<Card>,
 }
@@ -147,6 +161,15 @@ impl Player {
             ace_count -= 1;
         }
         total
+    }
+}
+
+impl Display for Player {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for c in &self.hand {
+            writeln!(f, "{} {}", c.unicode(), c)?;
+        }
+        Ok(())
     }
 }
 
