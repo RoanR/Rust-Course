@@ -58,7 +58,9 @@ impl Terminal {
                 let s = text_split[col]
                     .get(row)
                     .map_or_else(|| " ".to_string(), |s| s.to_string());
-                let pad = (0..(col_size - s.len())).map(|_| " ").collect::<String>();
+                let pad = (0..(col_size - s.chars().count()))
+                    .map(|_| " ")
+                    .collect::<String>();
                 this_col.push_str(&s);
                 this_col.push_str(&pad);
             }
