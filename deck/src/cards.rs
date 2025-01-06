@@ -73,6 +73,35 @@ impl Card {
     }
 }
 
+impl Into<u8> for Card {
+    fn into(self) -> u8 {
+        let mut base = 0;
+        match self.suit {
+            Suits::Spades => base = 0x0 << 4,
+            Suits::Hearts => base = 0x1 << 4,
+            Suits::Diamonds => base = 0x2 << 4,
+            Suits::Clubs => base = 0x3 << 4,
+        };
+        let val = (u32::from(self.number)).to_le_bytes()[0];
+        base += val;
+        base
+    }
+}
+
+impl From<u8> for Card {
+    fn from(value: u8) -> Self {
+        let suit = match value & 0b00110000 {
+            0 => Suits::Spades,
+            1 => Suits::Hearts,
+            2 => Suits::Diamonds,
+            3 => Suits::Clubs,
+            _ => Suits::Spades,
+        };
+        let number = CardNumber::from(u32::from(value & 0b00001111));
+        Self { suit, number }
+    }
+}
+
 impl Display for Card {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.number == CardNumber::Joker {
@@ -257,6 +286,19 @@ mod tests {
         assert_eq!("Queen", format!("{}", Into::<CardNumber>::into(12)));
         assert_eq!("King", format!("{}", Into::<CardNumber>::into(13)));
         assert_eq!("Joker", format!("{}", Into::<CardNumber>::into(0)));
+    }
+
+    #[test]
+    fn card_u8() {
+        // Testing a range of numbers
+        for number in [CardNumber::Ace, CardNumber::Five, CardNumber::King] {
+            for suit in [Suits::Clubs, Suits::Diamonds, Suits::Hearts, Suits::Spades] {
+                let card = Card { suit, number };
+                let byte: u8 = card.into();
+                let conv = Card::from(byte);
+                assert_eq!(card, conv);
+            }
+        }
     }
 
     #[test]
