@@ -1,4 +1,4 @@
-use std::{cmp::max, fmt::Display, io, usize};
+use std::{fmt::Display, io};
 
 use crate::cards::{Card, Deck};
 use crate::terminal::Terminal;
@@ -60,16 +60,10 @@ impl Game {
     }
 
     pub fn cpu_turn(&mut self) {
-        let mut hand = self.computer.hand();
-        let mut total = 0;
-        for card in hand {
-            total += card.blackjack_value();
-        }
-
-        while total <= 16 {
+        println!("{}", self);
+        while self.computer.score() <= 16 {
             self.deck.hit(&mut self.computer);
             println!("{}", self);
-            total += self.computer.hand().last().unwrap().blackjack_value();
         }
     }
 
@@ -120,10 +114,6 @@ pub struct Player {
 impl Player {
     pub fn new(hand: Vec<Card>) -> Self {
         Self { hand }
-    }
-
-    pub fn hand(&self) -> &[Card] {
-        &self.hand
     }
 
     pub fn bust(&self) -> bool {
@@ -202,12 +192,6 @@ mod tests {
     }
 
     #[test]
-    fn player_hand() {
-        let p = Player::new(vec![Card::new(Suits::Clubs, 1.into())]);
-        assert_eq!(p.hand, p.hand());
-    }
-
-    #[test]
     fn player_bust() {
         let mut p = Player::new(vec![
             Card::new(Suits::Clubs, 10.into()),
@@ -222,7 +206,7 @@ mod tests {
     fn player_hit() {
         let mut p = Player::new(vec![]);
         p.hit(Card::new(Suits::Clubs, 1.into()));
-        assert_eq!(p.hand(), vec![Card::new(Suits::Clubs, 1.into())]);
+        assert_eq!(p.hand, vec![Card::new(Suits::Clubs, 1.into())]);
     }
 
     #[test]
