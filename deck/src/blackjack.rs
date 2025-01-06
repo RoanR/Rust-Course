@@ -22,17 +22,20 @@ impl Game {
         deck.shuffle();
         let computer = Player::new(deck.deal(2));
         let human = Player::new(deck.deal(2));
-        Self {
+        let game = Self {
             deck,
             human,
             computer,
             turn: true,
-        }
+        };
+        println!("{}", game);
+        game
     }
 
     pub fn turn(&mut self) {
         let mut stuck = false;
         while !stuck && !self.human.bust() {
+            println!("{}", self);
             let mut buffer = String::new();
             while !buffer.to_lowercase().contains("twist")
                 && !buffer.to_lowercase().contains("stick")
@@ -44,27 +47,20 @@ impl Game {
 
             if buffer.to_lowercase().contains("twist") {
                 self.deck.hit(&mut self.human);
-                // FIX
-                println!("\t{}", print_card!(self.human.hand.last().unwrap()))
+                println!("{}", self);
             }
             if buffer.to_lowercase().contains("stick") {
                 stuck = true
             }
         }
         if self.human.bust() {
-            println!("You're Bust.")
+            println!("{}", self);
         }
+        self.turn = false;
     }
 
     pub fn cpu_turn(&mut self) {
         let mut hand = self.computer.hand();
-        println!(
-            "The dealers hand:\n\t{}\n\t{}",
-            print_card!(hand[0]),
-            print_card!(hand[1]),
-        );
-        println!("\t==================");
-
         let mut total = 0;
         for card in hand {
             total += card.blackjack_value();
@@ -72,8 +68,7 @@ impl Game {
 
         while total <= 16 {
             self.deck.hit(&mut self.computer);
-            // FIX
-            println!("\t{}", print_card!(self.computer.hand().last().unwrap()));
+            println!("{}", self);
             total += self.computer.hand().last().unwrap().blackjack_value();
         }
     }
@@ -93,6 +88,9 @@ impl Display for Game {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut t = Terminal::new();
 
+        // Clear the Terminal
+        t.clear();
+
         // Title
         t.divider(f)?;
         t.centre_text(f, "Blackjack".to_string())?;
@@ -109,7 +107,8 @@ impl Display for Game {
         } else {
             text.push(format!("The Dealer:\n{}", self.computer));
         }
-        text.push(format!("The Player:\n{}", self.human));
+        let bust = if self.human.bust() { "Bust\n" } else { "" };
+        text.push(format!("The Player:\n{}{}", self.human, bust));
         t.column_text(f, text)
     }
 }

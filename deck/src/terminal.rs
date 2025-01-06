@@ -11,6 +11,11 @@ impl Terminal {
         }
     }
 
+    pub fn clear(&self) {
+        // clear screen using control character
+        print!("{}[2J", 27 as char);
+    }
+
     pub fn get_size(&mut self) {
         // Get the terminal size or use default of 40
         self.size = termsize::get().map_or_else(|| 40, |s| s.cols);
