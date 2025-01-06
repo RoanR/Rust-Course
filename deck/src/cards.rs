@@ -44,6 +44,25 @@ impl Display for Deck {
     }
 }
 
+impl Into<Vec<u8>> for Deck {
+    fn into(self) -> Vec<u8> {
+        let mut bytes = vec![];
+        for card in self.cards {
+            bytes.push(card.into());
+        }
+        bytes
+    }
+}
+
+impl From<Vec<u8>> for Deck {
+    fn from(value: Vec<u8>) -> Self {
+        let mut cards = vec![];
+        for byte in value {
+            cards.push(Card::from(byte));
+        }
+        Self { cards }
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Card {
     suit: Suits,
@@ -90,7 +109,7 @@ impl Into<u8> for Card {
 
 impl From<u8> for Card {
     fn from(value: u8) -> Self {
-        let suit = match value & 0b00110000 {
+        let suit = match (value & 0b00110000) >> 4 {
             0 => Suits::Spades,
             1 => Suits::Hearts,
             2 => Suits::Diamonds,
@@ -368,5 +387,13 @@ mod tests {
             cards: vec![card_a, card_b],
         };
         assert_eq!(expected.to_string(), format!("{}", deck))
+    }
+
+    #[test]
+    fn deck_u8() {
+        let deck = Deck::new();
+        let v: Vec<u8> = deck.clone().into();
+        let vdeck = Deck::from(v);
+        assert_eq!(deck, vdeck);
     }
 }
