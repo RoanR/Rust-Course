@@ -9,6 +9,7 @@ macro_rules! print_card {
     };
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Game {
     deck: Deck,
     human: Player,
@@ -107,6 +108,53 @@ impl Display for Game {
     }
 }
 
+impl Into<Vec<u8>> for Game {
+    fn into(self) -> Vec<u8> {
+        let mut vgame = vec![];
+        vgame.push(if self.turn { 0b1100_0001 } else { 0b1100_0000 });
+
+        for card in &self.computer.hand {
+            vgame.push(Into::<u8>::into(*card) + (0b01 << 6));
+        }
+
+        for card in &self.human.hand {
+            vgame.push(Into::<u8>::into(*card) + (0b10 << 6));
+        }
+
+        vgame.append(&mut self.deck.into());
+        vgame
+    }
+}
+
+impl From<Vec<u8>> for Game {
+    fn from(value: Vec<u8>) -> Self {
+        let turn = if value[0] == 0b1100_0001 { true } else { false };
+        let mut pcards = vec![];
+        let mut ccards = vec![];
+        let mut dcards = vec![];
+
+        for card in value {
+            match card >> 6 {
+                0b00 => dcards.push(Card::from(card)),
+                0b01 => ccards.push(Card::from(card)),
+                0b10 => pcards.push(Card::from(card)),
+                _ => continue,
+            };
+        }
+        let computer = Player::new(ccards);
+        let human = Player::new(pcards);
+        let deck = Deck::new_set(dcards);
+
+        Self {
+            computer,
+            deck,
+            human,
+            turn,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Player {
     hand: Vec<Card>,
 }
@@ -251,5 +299,13 @@ mod tests {
         assert!(game.turn);
         assert_eq!(game.human.hand.len(), 2);
         assert_eq!(game.computer.hand.len(), 2);
+    }
+
+    #[test]
+    fn game_vec() {
+        let game = Game::new();
+        let v: Vec<u8> = game.clone().into();
+        let vgame = Game::from(v);
+        assert_eq!(game, vgame);
     }
 }

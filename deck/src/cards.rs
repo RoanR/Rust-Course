@@ -24,6 +24,10 @@ impl Deck {
         Deck { cards }
     }
 
+    pub fn new_set(cards: Vec<Card>) -> Self {
+        Deck { cards }
+    }
+
     pub fn shuffle(&mut self) {
         let mut rng = thread_rng();
         self.cards.shuffle(&mut rng);
