@@ -142,7 +142,7 @@ impl Player {
         self.hand.push(card);
     }
 
-    pub fn score(&self) -> usize {
+    pub fn score(&self) -> u32 {
         let mut ace_count = 0;
         let mut total = 0;
         for card in &self.hand {
@@ -180,7 +180,7 @@ impl Deck {
 }
 
 impl Card {
-    pub fn blackjack_value(&self) -> usize {
+    pub fn blackjack_value(&self) -> u32 {
         if self.value() > 10 {
             10
         } else {

@@ -55,8 +55,8 @@ impl Card {
         Self { suit, number }
     }
 
-    pub fn value(&self) -> usize {
-        usize::from(self.number)
+    pub fn value(&self) -> u32 {
+        u32::from(self.number)
     }
 
     pub fn unicode(&self) -> String {
@@ -131,8 +131,8 @@ pub enum CardNumber {
     Joker,
 }
 
-impl From<usize> for CardNumber {
-    fn from(value: usize) -> Self {
+impl From<u32> for CardNumber {
+    fn from(value: u32) -> Self {
         match value {
             1 => CardNumber::Ace,
             2 => CardNumber::Two,
@@ -152,7 +152,7 @@ impl From<usize> for CardNumber {
     }
 }
 
-impl From<CardNumber> for usize {
+impl From<CardNumber> for u32 {
     fn from(value: CardNumber) -> Self {
         match value {
             CardNumber::Ace => 1,
