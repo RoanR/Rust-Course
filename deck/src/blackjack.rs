@@ -1,3 +1,6 @@
+use std::fs::File;
+use std::io::{BufReader, Read, Write};
+use std::path::PathBuf;
 use std::{fmt::Display, io};
 
 use crate::cards::{Card, Deck};
@@ -76,6 +79,22 @@ impl Game {
         } else {
             true
         }
+    }
+
+    fn save(&self, filename: PathBuf) -> Result<(), io::Error> {
+        let mut f = File::create(filename)?;
+        let to_write: Vec<u8> = self.clone().into();
+        f.write_all(&to_write)?;
+        Ok(())
+    }
+
+    fn load(filename: PathBuf) -> Result<Game, io::Error> {
+        let f = File::open(filename)?;
+        let mut reader = BufReader::new(f);
+
+        let mut buf = vec![];
+        let len = reader.read_to_end(&mut buf)?;
+        Ok(Game::from(buf))
     }
 }
 
@@ -230,6 +249,8 @@ impl Card {
 #[cfg(test)]
 mod tests {
 
+    use tempfile::NamedTempFile;
+
     use super::*;
     use crate::cards::Suits;
 
@@ -307,5 +328,14 @@ mod tests {
         let v: Vec<u8> = game.clone().into();
         let vgame = Game::from(v);
         assert_eq!(game, vgame);
+    }
+
+    #[test]
+    fn game_save_load() {
+        let game = Game::new();
+        let f = NamedTempFile::new().unwrap();
+        assert!(game.save(f.path().to_path_buf()).is_ok());
+        let lgame = Game::load(f.path().to_path_buf()).unwrap();
+        assert_eq!(lgame, game);
     }
 }
