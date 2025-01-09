@@ -2,6 +2,7 @@ use blackjack::Game;
 
 mod blackjack;
 mod cards;
+mod cli;
 mod terminal;
 
 fn main() {
