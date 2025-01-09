@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
 use blackjack::Game;
+use clap::Parser;
+use cli::Args;
 
 mod blackjack;
 mod cards;
@@ -16,8 +18,11 @@ fn init_game(load: bool, path: PathBuf) -> Game {
     };
     Game::new()
 }
+
 fn main() {
-    let mut game = Game::new();
+    let args = Args::parse();
+    let mut game = init_game(args.load_game(), args.path_game().to_path_buf());
+
     println!("{}", game);
     game.turn();
     game.cpu_turn();

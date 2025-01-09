@@ -3,6 +3,8 @@ use std::io::{BufReader, Read, Write};
 use std::path::PathBuf;
 use std::{fmt::Display, io};
 
+use thiserror::Error;
+
 use crate::cards::{Card, Deck};
 use crate::terminal::Terminal;
 
@@ -10,6 +12,22 @@ macro_rules! print_card {
     ($card:expr) => {
         format!("{} {}", $card.unicode(), $card)
     };
+}
+
+#[derive(Debug, Error)]
+pub enum BlackjackError {
+    /// A wrapper for an IO error when attempting to save the current game
+    #[error("A Wrapped IO Error, from {e}")]
+    IOError {
+        /// The IO Error being wrapped
+        e: std::io::Error,
+    },
+}
+
+impl Into<BlackjackError> for io::Error {
+    fn into(self) -> BlackjackError {
+        BlackjackError::IOError { e: self }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -81,19 +99,19 @@ impl Game {
         }
     }
 
-    pub fn save(&self, filename: PathBuf) -> Result<(), io::Error> {
-        let mut f = File::create(filename)?;
+    pub fn save(&self, filename: PathBuf) -> Result<(), BlackjackError> {
+        let mut f = File::create(filename).map_err(|e| e.into())?;
         let to_write: Vec<u8> = self.clone().into();
-        f.write_all(&to_write)?;
+        f.write_all(&to_write).map_err(|e| e.into())?;
         Ok(())
     }
 
-    pub fn load(filename: PathBuf) -> Result<Game, io::Error> {
-        let f = File::open(filename)?;
+    pub fn load(filename: PathBuf) -> Result<Game, BlackjackError> {
+        let f = File::open(filename).map_err(|e| e.into())?;
         let mut reader = BufReader::new(f);
 
         let mut buf = vec![];
-        let len = reader.read_to_end(&mut buf)?;
+        reader.read_to_end(&mut buf).map_err(|e| e.into())?;
         Ok(Game::from(buf))
     }
 }
