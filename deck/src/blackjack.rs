@@ -81,14 +81,14 @@ impl Game {
         }
     }
 
-    fn save(&self, filename: PathBuf) -> Result<(), io::Error> {
+    pub fn save(&self, filename: PathBuf) -> Result<(), io::Error> {
         let mut f = File::create(filename)?;
         let to_write: Vec<u8> = self.clone().into();
         f.write_all(&to_write)?;
         Ok(())
     }
 
-    fn load(filename: PathBuf) -> Result<Game, io::Error> {
+    pub fn load(filename: PathBuf) -> Result<Game, io::Error> {
         let f = File::open(filename)?;
         let mut reader = BufReader::new(f);
 
