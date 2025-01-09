@@ -35,11 +35,12 @@ pub struct Game {
     deck: Deck,
     human: Player,
     computer: Player,
+    file: PathBuf,
     turn: bool,
 }
 
 impl Game {
-    pub fn new() -> Self {
+    pub fn new(file: PathBuf) -> Self {
         let mut deck = Deck::new();
         deck.shuffle();
         let computer = Player::new(deck.deal(2));
@@ -48,6 +49,7 @@ impl Game {
             deck,
             human,
             computer,
+            file,
             turn: true,
         };
         println!("{}", game);
@@ -99,20 +101,44 @@ impl Game {
         }
     }
 
-    pub fn save(&self, filename: PathBuf) -> Result<(), BlackjackError> {
-        let mut f = File::create(filename).map_err(|e| e.into())?;
+    pub fn save(&self) -> Result<(), BlackjackError> {
+        let mut f = File::create(self.file.clone()).map_err(|e| e.into())?;
         let to_write: Vec<u8> = self.clone().into();
         f.write_all(&to_write).map_err(|e| e.into())?;
         Ok(())
     }
 
     pub fn load(filename: PathBuf) -> Result<Game, BlackjackError> {
-        let f = File::open(filename).map_err(|e| e.into())?;
+        let f = File::open(filename.clone()).map_err(|e| e.into())?;
         let mut reader = BufReader::new(f);
 
         let mut buf = vec![];
         reader.read_to_end(&mut buf).map_err(|e| e.into())?;
-        Ok(Game::from(buf))
+
+        let turn = if buf[0] == 0b1100_0001 { true } else { false };
+        let mut pcards = vec![];
+        let mut ccards = vec![];
+        let mut dcards = vec![];
+
+        for card in buf {
+            match card >> 6 {
+                0b00 => dcards.push(Card::from(card)),
+                0b01 => ccards.push(Card::from(card)),
+                0b10 => pcards.push(Card::from(card)),
+                _ => continue,
+            };
+        }
+        let computer = Player::new(ccards);
+        let human = Player::new(pcards);
+        let deck = Deck::new_set(dcards);
+
+        Ok(Game {
+            computer,
+            deck,
+            human,
+            file: filename,
+            turn,
+        })
     }
 }
 
@@ -160,34 +186,6 @@ impl Into<Vec<u8>> for Game {
 
         vgame.append(&mut self.deck.into());
         vgame
-    }
-}
-
-impl From<Vec<u8>> for Game {
-    fn from(value: Vec<u8>) -> Self {
-        let turn = if value[0] == 0b1100_0001 { true } else { false };
-        let mut pcards = vec![];
-        let mut ccards = vec![];
-        let mut dcards = vec![];
-
-        for card in value {
-            match card >> 6 {
-                0b00 => dcards.push(Card::from(card)),
-                0b01 => ccards.push(Card::from(card)),
-                0b10 => pcards.push(Card::from(card)),
-                _ => continue,
-            };
-        }
-        let computer = Player::new(ccards);
-        let human = Player::new(pcards);
-        let deck = Deck::new_set(dcards);
-
-        Self {
-            computer,
-            deck,
-            human,
-            turn,
-        }
     }
 }
 
@@ -267,6 +265,8 @@ impl Card {
 #[cfg(test)]
 mod tests {
 
+    use std::path::Path;
+
     use tempfile::NamedTempFile;
 
     use super::*;
@@ -334,25 +334,17 @@ mod tests {
 
     #[test]
     fn game_new() {
-        let game = Game::new();
+        let game = Game::new(Path::new("Test").to_path_buf());
         assert!(game.turn);
         assert_eq!(game.human.hand.len(), 2);
         assert_eq!(game.computer.hand.len(), 2);
     }
 
     #[test]
-    fn game_vec() {
-        let game = Game::new();
-        let v: Vec<u8> = game.clone().into();
-        let vgame = Game::from(v);
-        assert_eq!(game, vgame);
-    }
-
-    #[test]
     fn game_save_load() {
-        let game = Game::new();
         let f = NamedTempFile::new().unwrap();
-        assert!(game.save(f.path().to_path_buf()).is_ok());
+        let game = Game::new(f.path().to_path_buf());
+        assert!(game.save().is_ok());
         let lgame = Game::load(f.path().to_path_buf()).unwrap();
         assert_eq!(lgame, game);
     }

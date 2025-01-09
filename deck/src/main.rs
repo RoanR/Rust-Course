@@ -11,12 +11,12 @@ mod terminal;
 
 fn init_game(load: bool, path: PathBuf) -> Game {
     if load {
-        match Game::load(path) {
+        match Game::load(path.clone()) {
             Ok(g) => return g,
-            Err(_) => return Game::new(),
+            Err(_) => return Game::new(path),
         };
     };
-    Game::new()
+    Game::new(path)
 }
 
 fn main() {
@@ -46,9 +46,9 @@ mod tests {
         // load being true but path being fake should give new game
         game = init_game(true, Path::new("test").to_path_buf());
         // load being true and path being real should load the game
-        let save_game = Game::new();
         let f = NamedTempFile::new().unwrap();
-        assert!(save_game.save(f.path().to_path_buf()).is_ok());
+        let save_game = Game::new(f.path().to_path_buf());
+        assert!(save_game.save().is_ok());
         let load_game = init_game(true, f.path().to_path_buf());
         assert_eq!(save_game, load_game)
     }
